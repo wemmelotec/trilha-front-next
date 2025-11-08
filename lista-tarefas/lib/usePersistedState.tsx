@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export function usePersistedState<T>(key: string, initial: T) {
+export function useEstadoPersistente<T>(key: string, initial: T) {
   const [state, setState] = useState<T>(() => {
     try {
       const raw = typeof window !== "undefined" ? localStorage.getItem(key) : null;
@@ -22,3 +22,6 @@ export function usePersistedState<T>(key: string, initial: T) {
 
   return [state, setState] as const;
 }
+
+// Backwards-compatible export name
+export { useEstadoPersistente as usePersistedState };

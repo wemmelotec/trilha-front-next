@@ -1,0 +1,410 @@
+tarefas.component.ts   // container (usa o service)
+todo-form.component.ts
+todo-list.component.ts
+todo-item.component.ts
+app-routing.module.ts  // rota '/tarefas'
+          </code></pre>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Next.js — Guia de Consulta (junior)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#071427; --muted:#94a3b8; --accent:#06b6d4; --white:#e6eef8; --gap:18px;
+    }
+    html,body{height:100%}
+    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:var(--bg); color:var(--white); margin:0; padding:28px}
+    .wrap{max-width:1100px;margin:0 auto}
+    header{margin-bottom:18px}
+    h1{font-size:20px;margin:0 0 6px}
+    p.lead{color:var(--muted);margin:6px 0 18px}
+
+    nav.toc{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+    nav.toc a{color:var(--accent);text-decoration:none;font-size:13px}
+
+    .grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+    @media (max-width:980px){ .grid{grid-template-columns:1fr} }
+
+    .card{background:var(--card);padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+    .pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap);align-items:start}
+    @media (max-width:880px){ .pair{grid-template-columns:1fr} }
+
+    h2{margin:0 0 8px}
+    h3{margin:0 0 8px;font-size:15px}
+    .muted{color:var(--muted);font-size:13px}
+    pre{background:#061426;color:#dff6fb;padding:12px;border-radius:8px;overflow:auto;font-size:13px}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+
+    .kbd{background:#061827;padding:4px 8px;border-radius:6px;color:var(--white);font-size:13px}
+    .tips{background:linear-gradient(180deg, rgba(6,182,212,0.06), transparent);padding:10px;border-radius:8px;color:var(--muted);font-size:14px}
+    ul.check{margin:8px 0 0;padding-left:18px;color:var(--muted)}
+    footer{margin-top:22px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Next.js — Guia de Consulta (para desenvolvedores juniores)</h1>
+      <p class="lead">Resumo prático e rápido para entender o App Router (Next 13+), diferença entre Server e Client components, padrões comuns (layout, roteamento, persistência), e dicas de debugging. Exemplos baseados nos projetos <code>calculadora</code> e <code>lista-tarefas</code>.</p>
+
+      <nav class="toc" aria-label="Sumário">
+        <a href="#quick-start">Quick start</a>
+        <a href="#key-concepts">Conceitos-chave</a>
+        <a href="#examples">Exemplos</a>
+        <a href="#pitfalls">Erros comuns</a>
+        <a href="#checklist">Checklist</a>
+        <a href="#links">Links</a>
+      </nav>
+    </header>
+
+    <main style="display:flex;gap:18px;align-items:flex-start">
+      <nav aria-label="Menu de tópicos" style="width:260px;flex:0 0 260px;position:sticky;top:28px">
+        <div class="card" style="padding:10px;">
+          <h3 style="margin:0 0 8px">Tópicos</h3>
+          <p class="muted" style="margin:0 0 10px;font-size:13px">Clique em um item para ver a comparação.</p>
+          <ul id="sidebar" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px">
+            <li><button class="menu-item" data-target="quick-start">Quick start</button></li>
+            <li><button class="menu-item" data-target="app-router">App Router / Rotas</button></li>
+            <li><button class="menu-item" data-target="layout">Layout raiz</button></li>
+            <li><button class="menu-item" data-target="contador">Contador</button></li>
+            <li><button class="menu-item" data-target="todo">To‑Do (estrutura)</button></li>
+            <li><button class="menu-item" data-target="persist">Persistência / hooks</button></li>
+            <li><button class="menu-item" data-target="lifecycle">Ciclo de vida / Hooks</button></li>
+            <li><button class="menu-item" data-target="pitfalls">Erros comuns</button></li>
+            <li><button class="menu-item" data-target="checklist">Checklist</button></li>
+            <li><button class="menu-item" data-target="links">Links</button></li>
+          </ul>
+        </div>
+      </nav>
+
+      <section style="flex:1;min-width:0">
+        <div id="content-area">
+        <article class="card" id="quick-start">
+          <h2>Quick start — rodando os apps</h2>
+          <p class="muted">Comandos para a máquina de desenvolvimento (PowerShell no Windows). Rode dentro de cada pasta do projeto: <code>calculadora</code> e <code>lista-tarefas</code>.</p>
+          <pre><code class="lang-powershell">cd c:\workspace\trilha-front-next\calculadora
+npm install
+npm run dev
+
+# em outra janela, para lista-tarefas
+cd c:\workspace\trilha-front-next\lista-tarefas
+npm install
+npm run dev</code></pre>
+          <div class="tips">
+            Abra <code class="code">http://localhost:3000</code> (por padrão) e navegue para <code class="code">/contador</code> (projeto calculadora) e <code class="code">/tarefas</code> (lista-tarefas).
+          </div>
+        </article>
+
+        <article class="card" id="key-concepts" style="margin-top:18px">
+          <h2>Conceitos-chave</h2>
+          <div class="pair">
+            <div>
+              <h3>App Router (pastas em <code>app/</code>)</h3>
+              <p class="muted">Arquivos <code>app/segment/page.tsx</code> mapeiam rotas. Use <code>app/layout.tsx</code> para layouts compartilhados. Você pode ter nested layouts e error/loading UI.</p>
+            </div>
+            <div>
+              <h3>Server vs Client Components</h3>
+              <p class="muted">Por padrão os componentes em <code>app/</code> são Server Components. Para usar hooks (useState/useEffect) coloque <code>"use client"</code> no topo do arquivo — isso transforma o componente em Client Component.</p>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="pair">
+            <div>
+              <h3>Data fetching</h3>
+              <p class="muted">No App Router prefira <code>fetch()</code> com a opção <code>cache: 'no-store'</code> para dados dinâmicos, ou chamadas no server component (async) retornando JSX. Para chamadas client-side use <code>useEffect</code> ou React Query.</p>
+            </div>
+            <div>
+              <h3>Estilos</h3>
+              <p class="muted">Tailwind é comum. Em projetos deste workspace o Tailwind/PostCSS já está configurado via <code>postcss.config.mjs</code> e <code>globals.css</code>.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="examples" style="margin-top:18px">
+          <h2>Exemplos práticos</h2>
+          <h3>1) Contador (Client Component)</h3>
+          <p class="muted">Arquivo: <code>calculadora/app/contador/page.tsx</code>. Lembre-se do <code>"use client"</code> quando usar hooks.</p>
+          <pre><code>// calculadora/app/contador/page.tsx
+"use client"
+import { useState } from 'react'
+
+export default function Contador(){
+  const [count, setCount] = useState(0)
+  function increment(){ setCount(function(c){ return c + 1 }) }
+  function decrement(){ setCount(function(c){ return c - 1 }) }
+
+  return (
+    <main>
+      <h1>Contador</h1>
+      <p>{count}</p>
+      <div>
+        <button onClick={increment}>+</button>
+        <button onClick={decrement}>-</button>
+      </div>
+    </main>
+  )
+}
+          </code></pre>
+
+          <h3 style="margin-top:12px">2) To‑Do (estrutura)</h3>
+          <p class="muted">Pasta: <code>lista-tarefas/components/Todo/</code>. Padrão: um container Client Component (estado + persistência) e filhos para form/list/item.</p>
+          <pre><code>// resumo estrutural
+app/tarefas/page.tsx       // Server page que renderiza o Client TodoApp
+components/Todo/TodoApp.tsx // "use client" (useState + useEffect/localStorage)
+components/Todo/TodoForm.tsx
+components/Todo/TodoList.tsx
+components/Todo/TodoItem.tsx
+lib/usePersistedState.tsx  // hook para sincronizar com localStorage
+          </code></pre>
+          <div class="tips">Dica: extraia tipos (ex: <code>Tarefa</code>) para um módulo comum (<code>types.ts</code>) para evitar problemas de import em Server Components.</div>
+        </article>
+
+        <article class="card" id="app-router" style="margin-top:18px;display:none">
+          <h2>App Router / Rotas</h2>
+          <div class="pair">
+            <div>
+              <h3>Next.js — Rota / Página (App Router)</h3>
+              <p class="muted">Arquivo: <code>app/tarefas/page.tsx</code> — rota acessível em <code>/tarefas</code></p>
+              <pre><code>// app/tarefas/page.tsx (exemplo)
+export default function Page(){
+  return (<main><TodoApp /></main>)
+}
+              </code></pre>
+            </div>
+            <div>
+              <h3>Angular — Rota / Component</h3>
+              <p class="muted">Arquivos: <code>tarefas.component.ts</code> + <code>app-routing.module.ts</code></p>
+              <pre><code>// app-routing.module.ts
+const routes = [
+  { path: 'tarefas', component: TarefasComponent }
+];
+
+// tarefas.component.ts
+@Component({ templateUrl: './tarefas.component.html' })
+export class TarefasComponent {}
+              </code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="layout" style="margin-top:18px;display:none">
+          <h2>Layout raiz</h2>
+          <div class="pair">
+            <div>
+              <h3>Next.js — Layout raiz</h3>
+              <div class="muted">Arquivo: <code>app/layout.tsx</code></div>
+              <pre><code>// app/layout.tsx
+export default function RootLayout({ children }){
+  return (<html><body>{children}</body></html>)
+}
+              </code></pre>
+            </div>
+            <div>
+              <h3>Angular — Layout raiz</h3>
+              <div class="muted">Arquivos: <code>app.component.html</code> + <code>app.module.ts</code></div>
+              <pre><code>&lt;app-root&gt;
+  &lt;main&gt;
+    &lt;router-outlet&gt;&lt;/router-outlet&gt;
+  &lt;/main&gt;
+&lt;/app-root&gt;
+              </code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="contador" style="margin-top:18px;display:none">
+          <h2>Contador (Client Component)</h2>
+          <div class="pair">
+            <div>
+              <h3>Next.js</h3>
+              <p class="muted">Arquivo: <code>calculadora/app/contador/page.tsx</code> — lembre-se do <code>"use client"</code>.</p>
+              <pre><code>"use client"
+import { useState } from 'react'
+
+export default function Contador(){
+  const [count, setCount] = useState(0)
+  function increment(){ setCount(function(c){ return c + 1 }) }
+  function decrement(){ setCount(function(c){ return c - 1 }) }
+
+  return (
+    &lt;main&gt;
+      &lt;h1&gt;Contador&lt;/h1&gt;
+      &lt;p&gt;{count}&lt;/p&gt;
+      &lt;div&gt;
+        &lt;button onClick={increment}&gt;+&lt;/button&gt;
+        &lt;button onClick={decrement}&gt;-&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/main&gt;
+  )
+}
+              </code></pre>
+            </div>
+            <div>
+              <h3>Angular</h3>
+              <div class="muted">Arquivos: <code>contador.component.ts</code>, <code>contador.component.html</code></div>
+              <pre><code>// contador.component.ts
+@Component({ templateUrl: './contador.component.html' })
+export class ContadorComponent { contagem = 0; incrementar() { this.contagem++ }}
+
+&lt;!-- contador.component.html --&gt;
+&lt;h1&gt;Contador&lt;/h1&gt;
+&lt;p&gt;{{ contagem }}&lt;/p&gt;
+&lt;button (click)="incrementar()"&gt;Incrementar&lt;/button&gt;
+              </code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="todo" style="margin-top:18px;display:none">
+          <h2>To‑Do (estrutura)</h2>
+          <div class="pair">
+            <div>
+              <h3>Next.js — Estrutura</h3>
+              <div class="muted">Arquivos principais no projeto <code>lista-tarefas</code></div>
+              <pre><code>app/tarefas/page.tsx       // Server page
+components/Todo/TodoApp.tsx // Client component (estado + persistência)
+components/Todo/TodoForm.tsx
+components/Todo/TodoList.tsx
+components/Todo/TodoItem.tsx
+lib/usePersistedState.tsx  // hook para localStorage
+              </code></pre>
+            </div>
+            <div>
+              <h3>Angular — Arquitetura recomendada</h3>
+              <div class="muted">Separar em components + service</div>
+              <pre><code>tarefas.service.ts    // @Injectable para persistência/state
+tarefas.component.ts   // container (usa o service)
+todo-form.component.ts
+todo-list.component.ts
+todo-item.component.ts
+app-routing.module.ts  // rota '/tarefas'
+              </code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="persist" style="margin-top:18px;display:none">
+          <h2>Persistência / hooks</h2>
+          <div class="pair">
+            <div>
+              <h3>Next.js — Hook de Persistência</h3>
+              <div class="muted">Arquivo: <code>lib/usePersistedState.tsx</code></div>
+              <pre><code>export function useEstadoPersistente(key, initial){
+  const [state, setState] = useState(()=>{/* read localStorage */})
+  useEffect(()=>{/* write localStorage */}, [state])
+  return [state, setState]
+}
+              </code></pre>
+            </div>
+            <div>
+              <h3>Angular — Service de Persistência</h3>
+              <div class="muted">Arquivo: <code>tarefas.service.ts</code></div>
+              <pre><code>@Injectable({providedIn: 'root'})
+export class TarefasService {
+  listar(){ return JSON.parse(localStorage.getItem('tarefas')||'[]') }
+  salvar(t){ localStorage.setItem('tarefas', JSON.stringify(t)) }
+}
+              </code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="lifecycle" style="margin-top:18px;display:none">
+          <h2>Ciclo de vida / Hooks</h2>
+          <div class="pair">
+            <div>
+              <h3>React / Next</h3>
+              <pre><code>useEffect(()=>{/* mount */}, [])
+useEffect(()=>{/* cleanup */ return ()=>{/* unmount */}}, [])
+              </code></pre>
+            </div>
+            <div>
+              <h3>Angular</h3>
+              <pre><code>ngOnInit() { /* mount */ }
+ngOnDestroy(){ /* cleanup */ }
+              </code></pre>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" id="pitfalls" style="margin-top:18px;display:none">
+          <h2>Erros comuns / soluções rápidas</h2>
+          <ul class="check">
+            <li><strong>Hook only in Client Component</strong> — coloque <code>"use client"</code> no topo do arquivo que usa hooks.</li>
+            <li><strong>localStorage undefined</strong> — execute apenas no client (useEffect) ou proteja com <code>typeof window !== 'undefined'</code>.</li>
+            <li><strong>Erro de import tipo '@/...'</strong> — configure <code>baseUrl</code> em <code>tsconfig.json</code> ou use caminhos relativos.</li>
+            <li><strong>Component lento/sem atualização</strong> — use setState funcional (<code>setSomething(s =&gt; ...)</code>) para evitar stale closures.</li>
+            <li><strong>Erro de SSR com fetch</strong> — em Server Components use fetch top-level ou async/await; em client use fetch dentro de useEffect.</li>
+          </ul>
+          <h3 style="margin-top:12px">Debugging prático</h3>
+          <ul class="check">
+            <li>Abra o console do navegador para erros runtime (React hydration warnings).</li>
+            <li>Use React DevTools para inspecionar estado e hooks.</li>
+            <li>Rode <code class="kbd">npm run dev</code> e observe mensagens no terminal.</li>
+            <li>TypeScript: rode <code class="kbd">npm run lint</code> / <code class="kbd">npm run build</code> para localizar erros de tipos.</li>
+          </ul>
+
+          <h3 style="margin-top:12px">Snippets rápidos</h3>
+          <pre><code>// proteger acesso a window
+if (typeof window !== 'undefined') {
+  // safe to use localStorage
+}
+          </code></pre>
+        </article>
+
+        <article class="card" id="checklist" style="margin-top:18px;display:none">
+          <h2>Checklist de revisão antes de abrir PR</h2>
+          <ul class="check">
+            <li>Funcionalidade testada localmente (dev).</li>
+            <li>TypeScript limpo: <code>npm run build</code> sem erros.</li>
+            <li>Sem alertas de hydration no console.</li>
+            <li>Componentes com responsabilidade clara (container vs presentation).</li>
+            <li>Persistência no client protegida de SSR.</li>
+          </ul>
+        </article>
+
+        <article class="card" id="links" style="margin-top:18px;display:none">
+          <h2>Recursos / leitura rápida</h2>
+          <ul class="check">
+            <li><a href="https://nextjs.org/docs" target="_blank" rel="noreferrer">Next.js Docs — App Router</a></li>
+            <li><a href="https://react.dev/" target="_blank" rel="noreferrer">React Docs (Hooks)</a></li>
+            <li><a href="https://tailwindcss.com/docs" target="_blank" rel="noreferrer">Tailwind CSS</a></li>
+          </ul>
+          <p class="muted" style="margin-top:8px">Este documento foi gerado com base nos projetos <code>calculadora</code> e <code>lista-tarefas</code> no workspace. Posso gerar exemplos Angular (arquivos prontos) para cada componente se desejar — diga quais componentes quer converter.</p>
+        </article>
+
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // menu behavior: show/hide sections and set active class
+      (function(){
+        const buttons = Array.from(document.querySelectorAll('.menu-item'))
+        const sections = Array.from(document.querySelectorAll('#content-area .card'))
+        function show(id){
+          sections.forEach(s => {
+            s.style.display = s.id === id ? 'block' : 'none'
+          })
+          buttons.forEach(b => b.classList.toggle('active', b.dataset.target === id))
+          // update hash without scrolling
+          history.replaceState(null, '', '#'+id)
+        }
+        buttons.forEach(b => {
+          b.addEventListener('click', ()=> show(b.dataset.target))
+        })
+        // expose keyboard focus styles
+        buttons.forEach(b => b.style.cssText = 'text-align:left;padding:8px;border-radius:6px;background:transparent;border:0;color:var(--white);cursor:pointer')
+        // initial: use location.hash if present
+        const initial = (location.hash || '#quick-start').replace('#','')
+        // small delay to ensure DOM ready
+        setTimeout(()=> show(initial), 50)
+      })()
+    </script>
+
+    </div>
+  </div>
+</body>
+</html>

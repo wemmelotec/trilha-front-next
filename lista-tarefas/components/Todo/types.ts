@@ -1,5 +1,5 @@
-export type Todo = {
+export type Tarefa = {
   id: string;
-  text: string;
-  completed: boolean;
+  texto: string;
+  concluida: boolean;
 };

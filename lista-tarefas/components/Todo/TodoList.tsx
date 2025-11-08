@@ -1,25 +1,25 @@
 "use client";
 
 import React from "react";
-import type { Todo } from "@/components/Todo/types";
+import type { Tarefa } from "@/components/Todo/types";
 import TodoItem from "@/components/Todo/TodoItem";
 
 export default function TodoList({
-  todos,
-  onToggle,
-  onRemove,
+  tarefas,
+  aoAlternar,
+  aoRemover,
 }: {
-  todos: Todo[];
-  onToggle: (id: string) => void;
-  onRemove: (id: string) => void;
+  tarefas: Tarefa[];
+  aoAlternar: (id: string) => void;
+  aoRemover: (id: string) => void;
 }) {
-  if (todos.length === 0)
+  if (tarefas.length === 0)
     return <p className="text-center text-zinc-500">Nenhuma tarefa. Adicione uma acima.</p>;
 
   return (
     <ul className="space-y-2">
-      {todos.map((t) => (
-        <TodoItem key={t.id} todo={t} onToggle={onToggle} onRemove={onRemove} />
+      {tarefas.map((t) => (
+        <TodoItem key={t.id} tarefa={t} aoAlternar={aoAlternar} aoRemover={aoRemover} />
       ))}
     </ul>
   );
