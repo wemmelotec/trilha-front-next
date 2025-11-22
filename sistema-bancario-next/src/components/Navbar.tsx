@@ -12,11 +12,11 @@ export default function Navbar() {
 
   // Não mostra navbar na página de login
   if (pathname === "/auth/login") {
-    return null;
+    return <div style={{ display: "none" }} />;
   }
 
   if (!isAuthenticated) {
-    return null;
+    return <div style={{ display: "none" }} />;
   }
 
   const navLinks = [
