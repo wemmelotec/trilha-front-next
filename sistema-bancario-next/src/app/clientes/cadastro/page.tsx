@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ClienteModel } from "@/types";
-import { clienteService } from "@/services/cliente.service";
+import { createCliente } from "@/actions/clientesActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 
@@ -35,9 +35,13 @@ export default function CadastroClientePage() {
     setIsLoading(true);
 
     try {
-      await clienteService.createCliente(formData as ClienteModel);
-      alert("Cliente cadastrado com sucesso!");
-      router.push("/clientes");
+      const result = await createCliente(formData as ClienteModel);
+      if (result.success) {
+        alert("Cliente cadastrado com sucesso!");
+        router.push("/clientes");
+      } else {
+        alert(result.error || "Erro ao cadastrar cliente!");
+      }
     } catch (error) {
       console.error("Erro ao cadastrar cliente:", error);
       alert("Erro ao cadastrar cliente!");
@@ -114,12 +118,13 @@ export default function CadastroClientePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Observações
+                Observações *
               </label>
               <textarea
                 name="observacoes"
                 value={formData.observacoes}
                 onChange={handleChange}
+                required
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
               />

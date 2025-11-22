@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContaModel, ClienteModel } from "@/types";
-import { contaService } from "@/services/conta.service";
-import { clienteService } from "@/services/cliente.service";
+import { createConta } from "@/actions/contasActions";
+import { getClientes } from "@/actions/clientesActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -27,8 +27,8 @@ export default function CadastroContaPage() {
 
   const loadClientes = async () => {
     try {
-      const data = await clienteService.getClientes();
-      setClientes(data.filter((c) => c.ativo));
+      const data = await getClientes();
+      setClientes(data.filter((c: ClienteModel) => c.ativo));
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);
       alert("Erro ao carregar clientes!");
@@ -58,9 +58,13 @@ export default function CadastroContaPage() {
     setIsSaving(true);
 
     try {
-      await contaService.createConta(formData as ContaModel);
-      alert("Conta cadastrada com sucesso!");
-      router.push("/contas");
+      const result = await createConta(formData as ContaModel);
+      if (result.success) {
+        alert("Conta cadastrada com sucesso!");
+        router.push("/contas");
+      } else {
+        alert(result.error || "Erro ao cadastrar conta!");
+      }
     } catch (error) {
       console.error("Erro ao cadastrar conta:", error);
       alert("Erro ao cadastrar conta!");

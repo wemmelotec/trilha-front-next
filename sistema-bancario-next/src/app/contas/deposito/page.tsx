@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContaModel, DepositoModel } from "@/types";
-import { contaService } from "@/services/conta.service";
+import { getContas, realizarDeposito } from "@/actions/contasActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -27,7 +27,7 @@ export default function DepositoPage() {
 
   const loadContas = async () => {
     try {
-      const data = await contaService.getContas();
+      const data = await getContas();
       setContas(data);
     } catch (error) {
       console.error("Erro ao carregar contas:", error);
@@ -65,9 +65,13 @@ export default function DepositoPage() {
     setIsProcessing(true);
 
     try {
-      await contaService.realizarDeposito(formData);
-      alert("Depósito realizado com sucesso!");
-      router.push("/contas");
+      const result = await realizarDeposito(formData);
+      if (result.success) {
+        alert("Depósito realizado com sucesso!");
+        router.push("/contas");
+      } else {
+        alert(result.error || "Erro ao realizar depósito!");
+      }
     } catch (error) {
       console.error("Erro ao realizar depósito:", error);
       alert("Erro ao realizar depósito!");

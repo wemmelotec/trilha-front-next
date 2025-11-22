@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContaModel, SaqueModel } from "@/types";
-import { contaService } from "@/services/conta.service";
+import { getContas, realizarSaque } from "@/actions/contasActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -27,7 +27,7 @@ export default function SaquePage() {
 
   const loadContas = async () => {
     try {
-      const data = await contaService.getContas();
+      const data = await getContas();
       setContas(data);
     } catch (error) {
       console.error("Erro ao carregar contas:", error);
@@ -75,9 +75,13 @@ export default function SaquePage() {
     setIsProcessing(true);
 
     try {
-      await contaService.realizarSaque(formData);
-      alert("Saque realizado com sucesso!");
-      router.push("/contas");
+      const result = await realizarSaque(formData);
+      if (result.success) {
+        alert("Saque realizado com sucesso!");
+        router.push("/contas");
+      } else {
+        alert(result.error || "Erro ao realizar saque!");
+      }
     } catch (error) {
       console.error("Erro ao realizar saque:", error);
       alert(error instanceof Error ? error.message : "Erro ao realizar saque!");

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ContaModel, ClienteModel } from "@/types";
-import { contaService } from "@/services/conta.service";
-import { clienteService } from "@/services/cliente.service";
+import { getContas, deleteConta } from "@/actions/contasActions";
+import { getClientes } from "@/actions/clientesActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -25,8 +25,8 @@ export default function ListagemContasPage() {
   const loadContas = async () => {
     try {
       const [contasData, clientesData] = await Promise.all([
-        contaService.getContas(),
-        clienteService.getClientes(),
+        getContas(),
+        getClientes(),
       ]);
 
       const clienteMap = new Map(
@@ -52,9 +52,13 @@ export default function ListagemContasPage() {
     }
 
     try {
-      await contaService.deleteConta(id);
-      alert("Conta deletada com sucesso!");
-      loadContas();
+      const result = await deleteConta(id);
+      if (result.success) {
+        alert("Conta deletada com sucesso!");
+        loadContas();
+      } else {
+        alert(result.error || "Erro ao deletar conta!");
+      }
     } catch (error) {
       console.error("Erro ao deletar conta:", error);
       alert("Erro ao deletar conta!");

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ClienteModel } from "@/types";
-import { clienteService } from "@/services/cliente.service";
+import { getClienteById, updateCliente } from "@/actions/clientesActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -31,7 +31,7 @@ export default function EditarClientePage() {
 
   const loadCliente = async () => {
     try {
-      const data = await clienteService.getClienteById(id);
+      const data = await getClienteById(id);
       setFormData(data);
     } catch (error) {
       console.error("Erro ao carregar cliente:", error);
@@ -58,9 +58,13 @@ export default function EditarClientePage() {
     setIsSaving(true);
 
     try {
-      await clienteService.updateCliente(id, formData);
-      alert("Cliente atualizado com sucesso!");
-      router.push("/clientes");
+      const result = await updateCliente(id, formData);
+      if (result.success) {
+        alert("Cliente atualizado com sucesso!");
+        router.push("/clientes");
+      } else {
+        alert(result.error || "Erro ao atualizar cliente!");
+      }
     } catch (error) {
       console.error("Erro ao atualizar cliente:", error);
       alert("Erro ao atualizar cliente!");
@@ -141,12 +145,13 @@ export default function EditarClientePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Observações
+                Observações *
               </label>
               <textarea
                 name="observacoes"
                 value={formData.observacoes}
                 onChange={handleChange}
+                required
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
               />

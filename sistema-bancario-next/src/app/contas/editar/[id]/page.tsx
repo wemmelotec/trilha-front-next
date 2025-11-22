@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ContaModel, ClienteModel } from "@/types";
-import { contaService } from "@/services/conta.service";
-import { clienteService } from "@/services/cliente.service";
+import { getContaById, updateConta } from "@/actions/contasActions";
+import { getClientes } from "@/actions/clientesActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -32,12 +32,12 @@ export default function EditarContaPage() {
   const loadData = async () => {
     try {
       const [contaData, clientesData] = await Promise.all([
-        contaService.getContaById(id),
-        clienteService.getClientes(),
+        getContaById(id),
+        getClientes(),
       ]);
 
       setFormData(contaData);
-      setClientes(clientesData.filter((c) => c.ativo));
+      setClientes(clientesData.filter((c: ClienteModel) => c.ativo));
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       alert("Erro ao carregar dados!");
@@ -62,9 +62,13 @@ export default function EditarContaPage() {
     setIsSaving(true);
 
     try {
-      await contaService.updateConta(id, formData);
-      alert("Conta atualizada com sucesso!");
-      router.push("/contas");
+      const result = await updateConta(id, formData);
+      if (result.success) {
+        alert("Conta atualizada com sucesso!");
+        router.push("/contas");
+      } else {
+        alert(result.error || "Erro ao atualizar conta!");
+      }
     } catch (error) {
       console.error("Erro ao atualizar conta:", error);
       alert("Erro ao atualizar conta!");

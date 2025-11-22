@@ -1,41 +1,60 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/services/auth.service";
-import { AuthModel } from "@/types";
+import {
+  login as loginAction,
+  logout as logoutAction,
+} from "@/actions/authActions";
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: AuthModel) => Promise<void>;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Inicializa verificando se estamos no cliente
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return authService.isAuthenticated();
-  });
-  const [isLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const login = async (credentials: AuthModel) => {
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
     try {
-      await authService.login(credentials);
-      setIsAuthenticated(true);
-      router.push("/home");
-    } catch (error) {
-      console.error("Login failed:", error);
-      throw error;
+      const response = await fetch("/api/auth/check");
+      const data = await response.json();
+      setIsAuthenticated(data.authenticated);
+    } catch {
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    authService.logout();
+  const login = async (username: string, password: string) => {
+    const result = await loginAction(username, password);
+    if (result.success) {
+      setIsAuthenticated(true);
+      router.push("/home");
+    } else {
+      throw new Error(result.error || "Erro ao fazer login");
+    }
+  };
+
+  const logout = async () => {
+    await logoutAction();
     setIsAuthenticated(false);
     router.push("/auth/login");
   };

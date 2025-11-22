@@ -18,7 +18,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login({ username, password });
+      await login(username, password);
     } catch (err) {
       setError("Usuário e/ou senha inválidos!");
       console.error("Login error:", err);

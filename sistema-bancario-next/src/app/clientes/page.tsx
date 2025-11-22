@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ClienteModel } from "@/types";
-import { clienteService } from "@/services/cliente.service";
+import { getClientes, deleteCliente } from "@/actions/clientesActions";
 import Button from "@/components/Button";
 import Card from "@/components/Card";
 import Loading from "@/components/Loading";
@@ -21,7 +21,7 @@ export default function ListagemClientesPage() {
 
   const loadClientes = async () => {
     try {
-      const data = await clienteService.getClientes();
+      const data = await getClientes();
       setClientes(data);
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);
@@ -37,9 +37,13 @@ export default function ListagemClientesPage() {
     }
 
     try {
-      await clienteService.deleteCliente(id);
-      alert("Cliente deletado com sucesso!");
-      loadClientes();
+      const result = await deleteCliente(id);
+      if (result.success) {
+        alert("Cliente deletado com sucesso!");
+        loadClientes();
+      } else {
+        alert(result.error || "Erro ao deletar cliente!");
+      }
     } catch (error) {
       console.error("Erro ao deletar cliente:", error);
       alert("Erro ao deletar cliente!");
